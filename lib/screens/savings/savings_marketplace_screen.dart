@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:loannova_mobile_app/features/savings/savings_application_screen.dart';
-
+import 'package:loannova_mobile_app/screens/savings/savings_application_screen.dart';
 class SavingsMarketplaceScreen extends StatelessWidget {
   const SavingsMarketplaceScreen({super.key});
 

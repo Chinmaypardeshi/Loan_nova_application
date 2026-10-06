@@ -71,8 +71,9 @@ class _SavingsApplicationScreenState extends State<SavingsApplicationScreen> {
               children: [
                 Text('Your application for ${widget.productTitle} has been successfully submitted to ${widget.providerName}.'),
                 const SizedBox(height: 12),
-                const Text('Reference ID: #SAV-${100000 + (DateTime.now().millisecond % 900000)}',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo),
+                Text(
+                  'Reference ID: #SAV-${100000 + (DateTime.now().millisecond % 900000)}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo),
                 ),
                 const SizedBox(height: 8),
                 const Text('You will receive a notification once verification is complete (typically 24 hours).',

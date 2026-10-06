@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:loannova_mobile_app/screens/marketplace/apply_screen.dart';
-import 'package:loannova_mobile_app/screens/calculators/emi_calculator_screen.dart';
 import 'package:loannova_mobile_app/screens/marketplace/my_applications_screen.dart';
 import 'package:loannova_mobile_app/screens/credit_score/credit_score_screen.dart';
 import 'package:loannova_mobile_app/screens/marketplace/saved_products_screen.dart';
@@ -14,6 +13,10 @@ import 'package:loannova_mobile_app/screens/profile/profile_screen.dart';
 import 'package:loannova_mobile_app/screens/profile/help_support_screen.dart';
 import 'package:loannova_mobile_app/screens/profile/referral_screen.dart';
 import 'package:loannova_mobile_app/screens/savings/savings_marketplace_screen.dart';
+import 'package:loannova_mobile_app/screens/marketplace/credit_card_marketplace_screen.dart';
+import 'package:loannova_mobile_app/screens/marketplace/insurance_marketplace_screen.dart';
+import 'package:loannova_mobile_app/screens/marketplace/investment_marketplace_screen.dart';
+import 'package:loannova_mobile_app/screens/financial_calculators//calculator_hub_screen.dart';
 
 class ProductCatalogScreen extends StatefulWidget {
   const ProductCatalogScreen({super.key});
@@ -68,14 +71,14 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
               );
             },
           ),
-          // EMI Calculator Icon Button
+          //Calculator hub
           IconButton(
             icon: const Icon(Icons.calculate),
-            tooltip: 'EMI Calculator',
+            tooltip: 'Financial Calculators',
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const EmiCalculatorScreen()),
+                MaterialPageRoute(builder: (context) => const CalculatorHubScreen()),
               );
             },
           ),
@@ -87,6 +90,17 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const MyApplicationsScreen()),
+              );
+            },
+          ),
+          //Insurance icon
+          IconButton(
+            icon: const Icon(Icons.security),
+            tooltip: 'Insurance Plans',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const InsuranceMarketplaceScreen()),
               );
             },
           ),
@@ -112,6 +126,17 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
               );
             },
           ),
+          //Credit card
+          IconButton(
+            icon: const Icon(Icons.credit_card),
+            tooltip: 'Credit Cards',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CreditCardMarketplaceScreen()),
+              );
+            },
+          ),
           //FAQ Buttons
           IconButton(
             icon: const Icon(Icons.help_outline),
@@ -120,6 +145,17 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
+              );
+            },
+          ),
+          //Investment button
+          IconButton(
+            icon: const Icon(Icons.trending_up),
+            tooltip: 'Investments & Wealth',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const InvestmentMarketplaceScreen()),
               );
             },
           ),
