@@ -9,42 +9,68 @@ class AiAssistantScreen extends StatefulWidget {
 
 class _AiAssistantScreenState extends State<AiAssistantScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  // Chat message list holding messages with sender identification (user vs. ai)
   final List<Map<String, String>> _messages = [
     {
       'sender': 'ai',
-      'text': 'Hello! I am your LoanNova Assistant. Ask me about loans, interest rates, eligibility, or KYC documents!'
-    }
+      'text': 'Hello! I am your LoanNova AI Financial Assistant. How can I help you optimize your loans, taxes, or investments today?',
+    },
   ];
 
-  void _sendMessage() {
-    final userText = _controller.text.trim();
-    if (userText.isEmpty) return;
+  // Quick suggestion chips for instant interactivity
+  final List<String> _suggestions = [
+    'Which tax regime is best for 12 LPA?',
+    'Calculate my home loan eligibility',
+    'How do I lower my DTI ratio?',
+    'Recommend high-growth SIPs',
+  ];
 
+  void _handleSubmitted(String text) {
+    if (text.trim().isEmpty) return;
+
+    _controller.clear();
     setState(() {
-      _messages.add({'sender': 'user', 'text': userText});
-      _controller.clear();
+      _messages.add({'sender': 'user', 'text': text});
     });
 
-    // Simulate instant local smart response
-    Future.delayed(const Duration(milliseconds: 500), () {
-      final query = userText.toLowerCase();
-      String reply = "I can help with that! You can browse our loan marketplace or use the EMI calculator from the top menu.";
+    _scrollToBottom();
 
-      if (query.contains('eligibility') || query.contains('score') || query.contains('cibil')) {
-        reply = "To be eligible for a loan, lenders typically look for a CIBIL credit score of 750+, stable monthly income, and a low existing debt ratio.";
-      } else if (query.contains('document') || query.contains('kyc') || query.contains('pan') || query.contains('aadhaar')) {
-        reply = "For digital verification, you can securely upload copies of your PAN card and Aadhaar card using our KYC Document module.";
-      } else if (query.contains('interest') || query.contains('rate') || query.contains('apr')) {
-        reply = "Interest rates on LoanNova range from 8.5% to 24% p.a. depending on the financial provider and loan type you choose.";
-      } else if (query.contains('emi') || query.contains('calculator') || query.contains('month')) {
-        reply = "You can easily calculate your monthly installments by tapping the calculator icon at the top right of the marketplace screen!";
-      } else if (query.contains('hello') || query.contains('hi') || query.contains('hey')) {
-        reply = "Hello there! How can I assist you with your loan application today?";
-      }
-
+    // Simulate intelligent AI financial response
+    Future.delayed(const Duration(milliseconds: 800), () {
+      String aiResponse = _generateAiResponse(text);
       setState(() {
-        _messages.add({'sender': 'ai', 'text': reply});
+        _messages.add({'sender': 'ai', 'text': aiResponse});
       });
+      _scrollToBottom();
+    });
+  }
+
+  String _generateAiResponse(String query) {
+    query = query.toLowerCase();
+    if (query.contains('tax') || query.contains('regime') || query.contains('lpa')) {
+      return 'Based on current tax laws, if your annual salary is around 12 LPA with standard deductions, the New Tax Regime often results in lower tax liability unless you have over ₹2.5 Lakhs in Section 80C/80D/HRA deductions. You can check exact numbers using our Tax Calculator in the Calculator Hub!';
+    } else if (query.contains('home loan') || query.contains('eligibility')) {
+      return 'Banks typically look at your FOIR (Fixed Obligation to Income Ratio), allowing up to 50% of your net monthly income for EMIs. Try our Home Loan Eligibility Calculator in the Eligibility Hub to see your max borrowing limit.';
+    } else if (query.contains('dti') || query.contains('debt')) {
+      return 'Your Debt-to-Income (DTI) ratio is your monthly debt payments divided by your gross monthly income. Lenders prefer a DTI ratio below 30% to 40% for quick approvals.';
+    } else if (query.contains('sip') || query.contains('invest') || query.contains('growth')) {
+      return 'For long-term wealth creation, equity mutual funds via monthly SIPs historically offer strong compounding returns. Check out our Investment Marketplace to explore top-rated funds!';
+    } else {
+      return 'That is a great question! For detailed processing, you can check your active applications or use our suite of specialized financial calculators under the Calculator Hub.';
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -52,33 +78,36 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('LoanNova Assistant'),
+        title: const Text('LoanNova AI Assistant'),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
+          // Chat Messages List
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16.0),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                final msg = _messages[index];
-                final isUser = msg['sender'] == 'user';
+                final message = _messages[index];
+                final bool isUser = message['sender'] == 'user';
+
                 return Align(
                   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 6),
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                     decoration: BoxDecoration(
-                      color: isUser ? Colors.indigo.shade100 : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(12),
+                      color: isUser ? Colors.indigo : Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      msg['text'] ?? '',
+                      message['text']!,
                       style: TextStyle(
-                        color: isUser ? Colors.indigo.shade900 : Colors.black87,
+                        color: isUser ? Colors.white : Colors.black87,
                         fontSize: 14,
                       ),
                     ),
@@ -87,28 +116,57 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
               },
             ),
           ),
+
+          // Quick Prompt Suggestion Chips
+          SizedBox(
+            height: 50,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: _suggestions.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ActionChip(
+                    backgroundColor: Colors.indigo.shade50,
+                    label: Text(_suggestions[index], style: const TextStyle(fontSize: 12, color: Colors.indigo)),
+                    onPressed: () => _handleSubmitted(_suggestions[index]),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Text Input Bar
           Container(
             padding: const EdgeInsets.all(8.0),
-            color: Colors.grey.shade100,
+            color: Colors.white,
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    onSubmitted: (_) => _sendMessage(),
-                    decoration: const InputDecoration(
-                      hintText: 'Ask about loans, eligibility, KYC...',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      fillColor: Colors.white,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: _handleSubmitted,
+                    decoration: InputDecoration(
+                      hintText: 'Ask about loans, tax, or investments...',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
                       filled: true,
+                      fillColor: Colors.grey.shade100,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Colors.indigo),
-                  onPressed: _sendMessage,
+                CircleAvatar(
+                  backgroundColor: Colors.indigo,
+                  child: IconButton(
+                    icon: const Icon(Icons.send, color: Colors.white, size: 18),
+                    onPressed: () => _handleSubmitted(_controller.text),
+                  ),
                 ),
               ],
             ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:loannova_mobile_app/screens/marketplace/product_catalog_screen.dart';
+import 'package:loannova_mobile_app/screens/auth/welcome_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +22,7 @@ class LoanNovaApp extends StatelessWidget {
       title: 'LoanNova MVP',
       theme: ThemeData(primarySwatch: Colors.indigo),
       debugShowCheckedModeBanner: false,
-      home: const ProductCatalogScreen(),
+      home: const WelcomeScreen(),
     );
   }
 }

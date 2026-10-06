@@ -5,7 +5,7 @@ class CreditCardMarketplaceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sample credit card catalog for the MVP
+    // Expanded catalog containing 5 distinct credit card products
     final List<Map<String, dynamic>> creditCards = [
       {
         'title': 'Elite Travel Rewards Card',
@@ -33,6 +33,24 @@ class CreditCardMarketplaceScreen extends StatelessWidget {
         'type': 'Corporate & Business',
         'perks': ['Expense management portal', 'Higher credit limits up to ₹15 Lakhs', 'Airport spa access'],
         'color': Colors.indigo,
+      },
+      {
+        'title': 'Royal Sapphire Premium Card',
+        'provider': 'Vanguard Bank',
+        'fee': '₹9,999 / year',
+        'rewardRate': '10X Points on Luxury Brands & Golf',
+        'type': 'Ultra Premium',
+        'perks': ['Dedicated 24/7 concierge service', 'Unlimited international lounge access', 'Complimentary golf lessons'],
+        'color': Colors.amber.shade800,
+      },
+      {
+        'title': 'Student Edge Digital Card',
+        'provider': 'NeoTrust Bank',
+        'fee': 'Lifetime Free (₹0)',
+        'rewardRate': '2X Points on Education & Books',
+        'type': 'Student & Beginner',
+        'perks': ['Build credit history securely', 'No annual or joining fees', 'Discounts on online learning platforms'],
+        'color': Colors.teal,
       },
     ];
 
