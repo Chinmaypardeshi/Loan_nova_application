@@ -54,3 +54,85 @@ During the recent development sprints, LoanNova advanced from a core product cat
 
 * **Problem:** Initially, tapping "Open Account" triggered a simple popup dialog that immediately confirmed the application without collecting user data or offering a sense of a true digital banking journey.
 * **Solution:** Upgraded the workflow into a robust multi-step form screen that validates inputs, displays a loading indicator during submission, generates a dynamic tracking reference ID, and feeds an event directly into the global `NotificationService` queue.
+
+Here are the standard terminal commands used during the development, package management, and testing of your Flutter project:
+
+### 1. Project Creation & Initialization
+
+* **Create a new Flutter project:**
+```bash
+flutter create loannova_mobile_app
+
+```
+
+
+* **Navigate into the project directory:**
+```bash
+cd loannova_mobile_app
+
+```
+
+
+
+### 2. Dependency Management
+
+* **Install/fetch all dependencies** listed in `pubspec.yaml` (such as `supabase_flutter`, `image_picker`, etc.):
+```bash
+flutter pub get
+
+```
+
+
+* **Add a specific package** (e.g., Supabase):
+```bash
+flutter pub add supabase_flutter
+
+```
+
+
+
+### 3. Running & Testing the App
+
+* **Run the application** on a connected device, emulator, or Chrome browser:
+```bash
+flutter run
+
+```
+
+
+* **Run on a specific device** (e.g., Chrome web):
+```bash
+flutter run -d chrome
+
+```
+
+
+* **Perform a Hot Reload** (while `flutter run` is active in the terminal, press):
+```bash
+r
+
+```
+
+
+* **Perform a Hot Restart** (clears local app state and restarts):
+```bash
+R
+
+```
+
+
+
+### 4. Building for Production
+
+* **Build an APK file** for Android deployment:
+```bash
+flutter build apk --release
+
+```
+
+
+* **Build for the Web** (production deployment bundle):
+```bash
+flutter build web
+
+```
