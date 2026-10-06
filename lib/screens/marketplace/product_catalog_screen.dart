@@ -16,7 +16,7 @@ import 'package:loannova_mobile_app/screens/savings/savings_marketplace_screen.d
 import 'package:loannova_mobile_app/screens/marketplace/credit_card_marketplace_screen.dart';
 import 'package:loannova_mobile_app/screens/marketplace/insurance_marketplace_screen.dart';
 import 'package:loannova_mobile_app/screens/marketplace/investment_marketplace_screen.dart';
-import 'package:loannova_mobile_app/screens/financial_calculators//calculator_hub_screen.dart';
+import 'package:loannova_mobile_app/screens/calculators/calculator_hub_screen.dart';
 
 class ProductCatalogScreen extends StatefulWidget {
   const ProductCatalogScreen({super.key});
