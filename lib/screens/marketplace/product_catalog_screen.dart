@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:loannova_mobile_app/screens/providers/app_state.dart';
 import 'package:loannova_mobile_app/screens/marketplace/apply_screen.dart';
 import 'package:loannova_mobile_app/screens/marketplace/my_applications_screen.dart';
 import 'package:loannova_mobile_app/screens/credit_score/credit_score_screen.dart';
@@ -286,6 +288,13 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                           foregroundColor: Colors.white,
                         ),
                         onPressed: () {
+                          // 1. Add application to global state provider so tracking updates instantly
+                          Provider.of<AppState>(context, listen: false).addApplication(
+                            productName: product['title'] ?? 'Financial Product',
+                            category: product['category'] ?? 'General Loan',
+                          );
+
+                          // 2. Navigate to apply screen
                           Navigator.push(
                             context,
                             MaterialPageRoute(

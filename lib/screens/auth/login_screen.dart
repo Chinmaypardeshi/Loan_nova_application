@@ -8,6 +8,8 @@ import 'package:loannova_mobile_app/screens/portals/rm_dashboard_screen.dart';
 import 'package:loannova_mobile_app/screens/portals/operations_screen.dart';
 import 'package:loannova_mobile_app/screens/portals/admin_portal_screen.dart';
 
+import '../main_navigation_shell.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -31,8 +33,27 @@ class _LoginScreenState extends State<LoginScreen> {
   ];
 
   void _handleLogin() {
-    Widget targetScreen;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
+    // Simple hardcoded check for Super Admin
+    if (_selectedRole == 'Super Administrator') {
+      if (email == 'admin' && password == '123') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminPortalScreen()),
+        );
+        return;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid Admin credentials. Use admin@loannova.com / admin123')),
+        );
+        return;
+      }
+    }
+
+    // Routing logic for other roles or standard customers
+    Widget targetScreen;
     switch (_selectedRole) {
       case 'Financial Partner':
         targetScreen = const PartnerPortalScreen();
@@ -46,12 +67,9 @@ class _LoginScreenState extends State<LoginScreen> {
       case 'Internal Operations':
         targetScreen = const OperationsScreen();
         break;
-      case 'Super Administrator':
-        targetScreen = const AdminPortalScreen();
-        break;
       case 'Customer':
       default:
-        targetScreen = const ProductCatalogScreen();
+        targetScreen = const MainNavigationShell();
         break;
     }
 
