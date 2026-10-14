@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:loannova_mobile_app/screens/providers/app_state.dart';
 import 'package:loannova_mobile_app/screens/auth/welcome_screen.dart';
+import 'package:loannova_mobile_app/screens/main_navigation_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +28,21 @@ class LoanNovaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'LoanNova MVP',
-      theme: ThemeData(primarySwatch: Colors.indigo),
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+      ),
       debugShowCheckedModeBanner: false,
-      home: const WelcomeScreen(),
+      // Consumer dynamically switches screens based on login state
+      home: Consumer<AppState>(
+        builder: (context, appState, child) {
+          if (appState.isLoggedIn) {
+            return const MainNavigationShell(); // Logged in -> show app/dashboards
+          } else {
+            return const WelcomeScreen(); // Logged out -> send back to welcome/login
+          }
+        },
+      ),
     );
   }
 }

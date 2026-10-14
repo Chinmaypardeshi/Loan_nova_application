@@ -70,13 +70,20 @@ class _ApplicationTrackingScreenState extends State<ApplicationTrackingScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Cloud ID: #${app.id}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+                          // Display Product Name prominently at the top
+                          Expanded(
+                            child: Text(
+                              app.productName,
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.indigo),
+                            ),
+                          ),
                           Text(app.date, style: const TextStyle(fontSize: 12, color: Colors.grey)),
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text(app.productName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       Text('Category: ${app.category}', style: const TextStyle(fontSize: 13, color: Colors.black87)),
+                      const SizedBox(height: 4),
+                      Text('Ref ID: #${app.id}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

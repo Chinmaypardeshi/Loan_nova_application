@@ -17,10 +17,14 @@ class LoanApplication {
   });
 
   factory LoanApplication.fromMap(Map<String, dynamic> map) {
+    final rawName = map['product_name'] ?? '';
+    final rawCategory = map['category'] ?? 'General';
+
     return LoanApplication(
       id: map['id'],
-      productName: map['product_name'] ?? '',
-      category: map['category'] ?? '',
+      // Fallback to category if product_name is empty/null
+      productName: rawName.toString().trim().isEmpty ? '$rawCategory Application' : rawName,
+      category: rawCategory,
       status: map['status'] ?? 'Pending',
       date: map['created_at'] != null ? map['created_at'].toString().substring(0, 10) : '',
     );
@@ -50,6 +54,7 @@ class AppState extends ChangeNotifier {
   void setRole(String role) {
     _currentUserRole = role;
     notifyListeners();
+    fetchApplications(); // Re-fetch data when role changes
   }
 
   void login(String name, String email, String role) {
@@ -58,16 +63,19 @@ class AppState extends ChangeNotifier {
     _currentUserRole = role;
     _isLoggedIn = true;
     notifyListeners();
-    fetchApplications(); // Fetch user's cloud applications on login
+    fetchApplications(); // Fetch cloud applications based on role on login
   }
 
   void logout() {
     _isLoggedIn = false;
+    _userName = '';
+    _userEmail = '';
+    _currentUserRole = 'Customer';
     _applications = [];
-    notifyListeners();
+    notifyListeners(); // This triggers the root widget to rebuild and show login
   }
 
-  // 1. Fetch live applications from Supabase PostgreSQL table
+  // Fetch live applications scoped by user role
   Future<void> fetchApplications() async {
     _isLoading = true;
     notifyListeners();
@@ -76,8 +84,13 @@ class AppState extends ChangeNotifier {
       final userId = supabase.auth.currentUser?.id;
       var query = supabase.from('applications').select();
 
-      if (userId != null) {
+      // Role-based data scoping
+      if (_currentUserRole == 'Customer' && userId != null) {
+        // Customers see ONLY their own applications
         query = supabase.from('applications').select().eq('user_id', userId);
+      } else {
+        // Staff, Partners, Operations, and Admins see the full enterprise pipeline queue
+        query = supabase.from('applications').select();
       }
 
       final response = await query;
@@ -85,14 +98,14 @@ class AppState extends ChangeNotifier {
           .map((map) => LoanApplication.fromMap(map))
           .toList();
     } catch (e) {
-      debugPrint('Error fetching applications from Supabase: $e');
+      debugPrint('Error fetching role-scoped applications from Supabase: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // 2. Insert new application directly into Supabase cloud database
+  // Insert new application directly into Supabase cloud database
   Future<void> addApplication({required String productName, required String category}) async {
     try {
       final userId = supabase.auth.currentUser?.id;
