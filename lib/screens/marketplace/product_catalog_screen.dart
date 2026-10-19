@@ -39,7 +39,8 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
   List<Map<String, dynamic>> savedProducts = [];
 
   Future<List<Map<String, dynamic>>> fetchProducts() async {
-    final response = await supabase.from('financial_products').select();
+    // Query the 'products' table where partner-published products are stored
+    final response = await supabase.from('products').select().order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(response);
   }
 
@@ -219,7 +220,16 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
+
+              debugPrint('DATABASE KEYS AVAILABLE: ${product.keys}');
+
               final productId = product['id'].toString();
+
+              // 🔍 UPDATE YOUR PRODUCT TITLE LINE HERE:
+              final productTitle = product['name'] ?? product['title'] ?? product['product_name'] ?? product['product_title'] ?? 'Financial Product';
+              final providerName = product['provider_name'] ?? product['provider'] ?? 'Partner Institution';
+              final interestRate = product['interest_rate']?.toString() ?? 'N/A';
+
               final isSaved = savedProductIds.contains(productId);
               final isCompared = comparedProductIds.contains(productId);
 
@@ -229,13 +239,13 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(16),
                   title: Text(
-                    product['title'] ?? '',
+                    productTitle,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
-                      'Provider: ${product['provider_name']}\nInterest Rate: ${product['interest_rate']}%',
+                      'Provider: $providerName\nInterest Rate: $interestRate%',
                     ),
                   ),
                   trailing: Row(
@@ -288,20 +298,13 @@ class _ProductCatalogScreenState extends State<ProductCatalogScreen> {
                           foregroundColor: Colors.white,
                         ),
                         onPressed: () {
-                          // 1. Add application to global state provider so tracking updates instantly
-                          Provider.of<AppState>(context, listen: false).addApplication(
-                            productName: product['title'] ?? 'Financial Product',
-                            category: product['category'] ?? 'General Loan',
-                          );
-
-                          // 2. Navigate to apply screen
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ApplyScreen(
-                                productId: product['id'],
-                                productTitle: product['title'],
-                                providerName: product['provider_name'],
+                                productId: product['id']?.toString() ?? '',
+                                productTitle: product['title']?.toString() ?? product['product_name']?.toString() ?? product['name']?.toString() ?? 'Financial Product',
+                                providerName: product['provider_name']?.toString() ?? product['provider']?.toString() ?? 'Partner Bank',
                               ),
                             ),
                           );

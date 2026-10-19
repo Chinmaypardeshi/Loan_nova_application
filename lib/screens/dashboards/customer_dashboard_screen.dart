@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:loannova_mobile_app/screens/auth/login_screen.dart'; // Make sure this path matches where your login_screen.dart file is located
 import 'package:loannova_mobile_app/screens/providers/app_state.dart';
 import 'package:loannova_mobile_app/screens/marketplace/product_catalog_screen.dart';
 import 'package:loannova_mobile_app/screens/marketplace/credit_card_marketplace_screen.dart';
@@ -17,6 +19,7 @@ import 'package:loannova_mobile_app/screens/ai_assistant/ai_assistant_screen.dar
 import 'package:loannova_mobile_app/screens/profile/referral_screen.dart';
 import 'package:loannova_mobile_app/screens/profile/help_support_screen.dart';
 import 'package:loannova_mobile_app/screens/profile/profile_screen.dart';
+import 'package:loannova_mobile_app/screens/marketplace/apply_product_screen.dart'; // Newly integrated multi-category apply screen
 
 class CustomerDashboardScreen extends StatefulWidget {
   const CustomerDashboardScreen({super.key});
@@ -75,7 +78,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           PopupMenuButton<String>(
             icon: const Icon(Icons.menu),
             tooltip: 'More Options',
-            onSelected: (value) {
+            onSelected: (value) async{
               Widget destination;
               switch (value) {
                 case 'calculators':
@@ -117,6 +120,15 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                 case 'profile':
                   destination = const ProfileScreen();
                   break;
+                case 'logout':
+                  await Supabase.instance.client.auth.signOut();
+                  if (!context.mounted) return;
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        (route) => false,
+                  );
+                  return;
                 default:
                   return;
               }
@@ -136,6 +148,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
               const PopupMenuItem(value: 'referral', child: ListTile(leading: Icon(Icons.card_giftcard, color: Colors.indigo), title: Text('Referral & Rewards'))),
               const PopupMenuItem(value: 'help', child: ListTile(leading: Icon(Icons.help_outline, color: Colors.indigo), title: Text('Help & FAQ'))),
               const PopupMenuItem(value: 'profile', child: ListTile(leading: Icon(Icons.account_circle, color: Colors.indigo), title: Text('My Account Profile'))),
+              const PopupMenuItem(value: 'logout', child: ListTile(leading: Icon(Icons.logout, color: Colors.red), title: Text('Logout', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)))),
             ],
           ),
         ],
@@ -207,7 +220,7 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
             const Text('Quick Financial Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
 
-            // Quick Action Grid with working navigation
+            // Quick Action Grid with working navigation covering all pillars
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
@@ -218,8 +231,15 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
               children: [
                 _buildActionCard(
                   context,
+                  Icons.add_box,
+                  'New Application',
+                  const ApplyProductScreen(),
+                  isFeatured: true,
+                ),
+                _buildActionCard(
+                  context,
                   Icons.money,
-                  'Apply Loan',
+                  'Loan Catalog',
                   const ProductCatalogScreen(),
                 ),
                 _buildActionCard(
@@ -230,15 +250,21 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
                 ),
                 _buildActionCard(
                   context,
-                  Icons.calculate,
-                  'Calculators',
-                  const CalculatorHubScreen(),
+                  Icons.security,
+                  'Insurance',
+                  const InsuranceMarketplaceScreen(),
                 ),
                 _buildActionCard(
                   context,
-                  Icons.folder_shared,
-                  'KYC Vault',
-                  const KycUploadScreen(),
+                  Icons.account_balance_wallet,
+                  'Savings & Dep.',
+                  const SavingsMarketplaceScreen(),
+                ),
+                _buildActionCard(
+                  context,
+                  Icons.trending_up,
+                  'Investments',
+                  const InvestmentMarketplaceScreen(),
                 ),
               ],
             ),
@@ -258,9 +284,9 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, IconData icon, String title, Widget destinationScreen) {
+  Widget _buildActionCard(BuildContext context, IconData icon, String title, Widget destinationScreen, {bool isFeatured = false}) {
     return Material(
-      color: Colors.white,
+      color: isFeatured ? Colors.indigo.shade50 : Colors.white,
       borderRadius: BorderRadius.circular(8),
       elevation: 1,
       child: InkWell(
@@ -269,22 +295,26 @@ class _CustomerDashboardScreenState extends State<CustomerDashboardScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => destinationScreen),
-          );
+          ).then((_) => Provider.of<AppState>(context, listen: false).fetchApplications());
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(color: isFeatured ? Colors.indigo : Colors.grey.shade300),
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.indigo, size: 20),
+              Icon(icon, color: isFeatured ? Colors.indigo.shade800 : Colors.indigo, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87),
+                  style: TextStyle(
+                    fontWeight: isFeatured ? FontWeight.bold : FontWeight.w600,
+                    fontSize: 13,
+                    color: isFeatured ? Colors.indigo.shade900 : Colors.black87,
+                  ),
                 ),
               ),
             ],

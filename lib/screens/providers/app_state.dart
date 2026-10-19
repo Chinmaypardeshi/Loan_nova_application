@@ -7,6 +7,9 @@ class LoanApplication {
   final String category;
   final String status;
   final String date;
+  final double? requestedAmount;
+  final int? tenureMonths;
+  final String applicantName;
 
   LoanApplication({
     required this.id,
@@ -14,19 +17,34 @@ class LoanApplication {
     required this.category,
     required this.status,
     required this.date,
+    this.requestedAmount,
+    this.tenureMonths,
+    required this.applicantName,
   });
 
   factory LoanApplication.fromMap(Map<String, dynamic> map) {
     final rawName = map['product_name'] ?? '';
     final rawCategory = map['category'] ?? 'General';
 
+    // Safely extract full_name from the joined profiles table relation
+    String name = 'Customer';
+    if (map['profiles'] != null) {
+      if (map['profiles'] is Map) {
+        name = map['profiles']['full_name'] ?? 'Customer';
+      } else if (map['profiles'] is List && (map['profiles'] as List).isNotEmpty) {
+        name = map['profiles'][0]['full_name'] ?? 'Customer';
+      }
+    }
+
     return LoanApplication(
       id: map['id'],
-      // Fallback to category if product_name is empty/null
       productName: rawName.toString().trim().isEmpty ? '$rawCategory Application' : rawName,
       category: rawCategory,
-      status: map['status'] ?? 'Pending',
+      status: map['status'] ?? 'Submitted',
       date: map['created_at'] != null ? map['created_at'].toString().substring(0, 10) : '',
+      requestedAmount: map['requested_amount'] != null ? double.tryParse(map['requested_amount'].toString()) : null,
+      tenureMonths: map['tenure_months'] != null ? int.tryParse(map['tenure_months'].toString()) : null,
+      applicantName: name,
     );
   }
 }
@@ -50,6 +68,58 @@ class AppState extends ChangeNotifier {
   List<LoanApplication> get applications => _applications;
   bool get isLoading => _isLoading;
 
+  /// Automatically check for an existing Supabase session on app startup
+  Future<void> checkInitialSession() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final session = supabase.auth.currentSession;
+      if (session != null) {
+        _isLoggedIn = true;
+        _userEmail = session.user.email ?? '';
+
+        // Fetch user profile role and name from public.profiles table
+        try {
+          final profile = await supabase
+              .from('profiles')
+              .select('full_name, role')
+              .eq('id', session.user.id)
+              .single();
+
+          _userName = profile['full_name'] ?? 'Chinmay Pardeshi';
+          _currentUserRole = profile['role'] ?? 'Customer';
+        } catch (_) {
+          _userName = session.user.email?.split('@')[0] ?? 'User';
+        }
+
+        await fetchApplications();
+      }
+    } catch (e) {
+      debugPrint('Error checking initial session: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Update application status and assign staff ID in Supabase
+  Future<void> updateApplicationStatus(dynamic applicationId, String newStatus) async {
+    try {
+      final staffId = supabase.auth.currentUser?.id;
+
+      await supabase.from('applications').update({
+        'status': newStatus,
+        'assigned_staff_id': staffId, // Tracks which staff member processed this
+      }).eq('id', applicationId);
+
+      debugPrint('SUCCESS: Application $applicationId updated to $newStatus');
+      await fetchApplications(); // Refresh the pipeline queue instantly
+    } catch (e) {
+      debugPrint('Error updating application status in Supabase: $e');
+    }
+  }
+
   // Actions
   void setRole(String role) {
     _currentUserRole = role;
@@ -72,25 +142,22 @@ class AppState extends ChangeNotifier {
     _userEmail = '';
     _currentUserRole = 'Customer';
     _applications = [];
-    notifyListeners(); // This triggers the root widget to rebuild and show login
+    notifyListeners();
   }
 
-  // Fetch live applications scoped by user role
+  // Fetch live applications scoped by user role with profile join
   Future<void> fetchApplications() async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final userId = supabase.auth.currentUser?.id;
-      var query = supabase.from('applications').select();
+      var query = supabase.from('applications').select('*, profiles(full_name)');
 
-      // Role-based data scoping
       if (_currentUserRole == 'Customer' && userId != null) {
-        // Customers see ONLY their own applications
-        query = supabase.from('applications').select().eq('user_id', userId);
+        query = supabase.from('applications').select('*, profiles(full_name)').eq('user_id', userId);
       } else {
-        // Staff, Partners, Operations, and Admins see the full enterprise pipeline queue
-        query = supabase.from('applications').select();
+        query = supabase.from('applications').select('*, profiles(full_name)');
       }
 
       final response = await query;
@@ -105,19 +172,26 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  // Insert new application directly into Supabase cloud database
-  Future<void> addApplication({required String productName, required String category}) async {
+  // Insert new application into Supabase without needing extra table columns
+  Future<void> addApplication({
+    required String productName,
+    required String category,
+    double? requestedAmount,
+    int? tenureMonths,
+  }) async {
     try {
       final userId = supabase.auth.currentUser?.id;
 
       await supabase.from('applications').insert({
-        'user_id': userId, // Links to authenticated user table
+        'user_id': userId,
         'product_name': productName,
         'category': category,
         'status': 'Submitted',
+        'requested_amount': requestedAmount,
+        'tenure_months': tenureMonths,
       });
 
-      // Refresh the local state list from the cloud database
+      debugPrint('SUCCESS: Applied for "$productName" ($category)');
       await fetchApplications();
     } catch (e) {
       debugPrint('Error inserting application to Supabase: $e');

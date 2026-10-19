@@ -344,3 +344,70 @@ lib/
 Your mobile frontend successfully covers **Sections 1 through 21** of the LoanNova specification (Customer Portals, Authentication, Marketplaces, Calculators, AI Assistant, KYC Vault, and Role-Based Portals). The remaining sections (22–40) cover enterprise server-side microservices, distributed PostgreSQL clustering, security hardening, and production store distribution.
 
 Everything is neatly packed, structured, and fully functional! Let me know whenever you're ready to pick up further development.
+
+
+14-10-2026
+
+# LoanNova Enterprise: System Architecture & Integration Documentation
+
+---
+
+## 1. Executive Summary
+
+**LoanNova** is a multi-role, end-to-end loan management and origination platform. It streamlines the entire borrowing and processing lifecycle across six distinct organizational personas—from initial customer application and document verification to internal operations, external financial partner underwriting, and administrative oversight.
+
+The platform is engineered using a decoupled architecture powered by **Flutter** for cross-platform UI (mobile and web) and **Supabase (PostgreSQL)** for relational database management, authentication, and security.
+
+---
+
+## 2. Core Technology Stack
+
+* **Frontend Framework:** Flutter (Dart) using Provider-based state management.
+* **Backend & Auth:** Supabase Auth & PostgreSQL Database.
+* **Security & Access Control:** Role-Based Data Scoping and Row Level Security (RLS) policies tied directly to user profiles.
+
+---
+
+## 3. Architecture & Key Components
+
+### A. Database Schema Alignment (`profiles` & `applications`)
+
+The PostgreSQL database is structured around normalized relational tables:
+
+* **`profiles`**: Directly linked to Supabase authentication (`auth.users`), storing metadata such as `full_name`, `phone_number`, `monthly_income`, `employment_type`, and the user's assigned enterprise `role`.
+* **`applications`**: The central operational hub tracking loan requests (`requested_amount`, `tenure_months`, `product_name`, `category`, `status`), linked back to the applicant via `user_id` and assigned staff via `assigned_staff_id`.
+
+### B. Global State Management (`app_state.dart`)
+
+The `AppState` ChangeNotifier class acts as the centralized reactive engine for the application:
+
+* **`LoanApplication` Model:** Parses raw map responses from Supabase, handling default fallbacks and formatting dates cleanly.
+* **Role-Scoped Data Fetching (`fetchApplications`)**: Dynamically adjusts database queries based on the active user persona:
+* *Customers* fetch only records matching their `user_id`.
+* *Sales Agents & RMs* fetch records assigned to their staff queue.
+* *Operations, Admins, & Partners* access authorized enterprise pipeline views.
+
+
+* **Session Persistence (`checkInitialSession`)**: Automatically verifies active Supabase authentication tokens on app startup or browser refresh, retrieving user profiles and role permissions seamlessly.
+
+### C. Reactive Routing & Entry Point (`main.dart`)
+
+The application utilizes a reactive root consumer to manage navigation state without manual router spaghetti:
+
+* **`ChangeNotifierProvider`**: Injects `AppState` globally and triggers session checks on cold boot.
+* **`Consumer<AppState>`**: Listens to changes in authentication state (`isLoggedIn`). The moment a user logs in or a session is restored, the root widget instantly swaps out the `LoginScreen` for the `MainNavigationShell` dashboards.
+
+---
+
+## 4. The Six User Personas
+
+| Persona | Operational Scope & Capabilities |
+| --- | --- |
+| **Customer** | Browses marketplace products, submits loan applications, and tracks live approval milestones. |
+| **Sales Agent** | Manages inbound acquisition leads, logs client communications, and qualifies prospective loans. |
+| **Relationship Manager** | Guides clients through onboarding, reviews KYC submissions, and verifies documentation. |
+| **Internal Operations** | Oversees back-office processing, reviews verification status, and advances pipeline queues. |
+| **Financial Partner** | External lender portal accessing consented underwriting files and issuing sanction offers. |
+| **Super Administrator** | Global platform supervisor monitoring system audit logs, user roles, and enterprise metrics. |
+
+---

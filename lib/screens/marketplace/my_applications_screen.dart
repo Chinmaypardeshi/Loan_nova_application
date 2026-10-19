@@ -53,7 +53,9 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
             itemBuilder: (context, index) {
               final app = apps[index];
               final product = app['financial_products'] ?? {};
-              final title = product['title'] ?? 'Financial Product';
+
+              // Updated to check both the joined table and your stored product_name column
+              final title = product['title'] ?? app['product_name'] ?? 'Financial Product';
               final provider = product['provider_name'] ?? 'Bank';
               final amount = app['requested_amount'] ?? 0;
               final tenure = app['tenure_months'] ?? 0;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:loannova_mobile_app/notification_service.dart'; // <-- Imported Notification Service
+import 'package:loannova_mobile_app/notification_service.dart';
 
 class ApplyScreen extends StatefulWidget {
   final String productId;
@@ -27,20 +27,26 @@ class _ApplyScreenState extends State<ApplyScreen> {
   final supabase = Supabase.instance.client;
 
   Future<void> _submitApplication() async {
+    // 1. SYNCHRONOUS GUARD: Instantly blocks rapid multi-taps
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      // Insert application into PostgreSQL via Supabase API
+      final userId = supabase.auth.currentUser?.id;
+
+      // 2. Insert application without product_id to avoid foreign key crashes
       await supabase.from('applications').insert({
-        'product_id': widget.productId,
+        'user_id': userId,
+        'product_name': widget.productTitle,
+        'category': 'Loans',
         'requested_amount': double.parse(_amountController.text),
         'tenure_months': int.parse(_tenureController.text),
         'status': 'submitted',
       });
 
-      // ---> TRIGGER THE NOTIFICATION HERE AUTOMATICALLY <---
+      // Trigger notification
       NotificationService().addNotification(
         title: 'Loan Application Submitted!',
         message: 'Your application for ${widget.productTitle} has been sent to ${widget.providerName}.',
@@ -68,11 +74,15 @@ class _ApplyScreenState extends State<ApplyScreen> {
         ),
       );
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error submitting application: $error')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error submitting application: $error')),
+        );
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
