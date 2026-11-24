@@ -5,7 +5,9 @@
 //  web and mobile users share the same account database.
 // ============================================================
 
-const BASE_URL = 'https://loan-nova-backend.onrender.com/api';
+// 🔧 UPDATE THIS after deploying backend to Render:
+//    Replace with your actual Render URL e.g. https://loannova-backend.onrender.com/api
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // ─── LOGIN ──────────────────────────────────────────────────
 export async function login(email, password) {
